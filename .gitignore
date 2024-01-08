@@ -7,7 +7,6 @@
 /target/maven-archiver
 *.project
 *.classpath
-/target/
 /.gradle
 /.idea
 *.log
