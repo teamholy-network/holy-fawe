@@ -111,17 +111,17 @@ public class ReflectionUtils {
         parms[0] = value;
         parms[1] = Integer.valueOf(ordinal);
         System.arraycopy(additionalValues, 0, parms, 2, additionalValues.length);
-        return enumClass.cast(getConstructorAccessor(enumClass, additionalTypes).newInstance(parms));
+        return enumClass.cast(getConstructor(enumClass, additionalTypes).newInstance(parms));
     }
 
-    private static ConstructorAccessor getConstructorAccessor(Class<?> enumClass,
-                                                              Class<?>[] additionalParameterTypes) throws NoSuchMethodException {
+    private static Constructor<?> getConstructor(Class<?> enumClass,
+                                                 Class<?>[] additionalParameterTypes) throws NoSuchMethodException {
         Class<?>[] parameterTypes = new Class[additionalParameterTypes.length + 2];
         parameterTypes[0] = String.class;
         parameterTypes[1] = int.class;
         System.arraycopy(additionalParameterTypes, 0,
                 parameterTypes, 2, additionalParameterTypes.length);
-        return ReflectionFactory.getReflectionFactory().newConstructorAccessor(enumClass.getDeclaredConstructor(parameterTypes));
+        return enumClass.getDeclaredConstructor(parameterTypes);
     }
 
     public static void setFailsafeFieldValue(Field field, Object target, Object value)
@@ -148,8 +148,12 @@ public class ReflectionUtils {
         }
 
         try {
-            FieldAccessor fa = ReflectionFactory.getReflectionFactory().newFieldAccessor(field, false);
-            fa.set(target, value);
+            System.out.println("Target " + target + " | " + field.getName());
+            if (target == null) field.set(null, value);
+            else field.set(target, value);
+
+//            FieldAccessor fa = ReflectionFactory.getReflectionFactory().newFieldAccessor(field, false);
+//            fa.set(target, value);
         } catch (NoSuchMethodError error) {
             field.set(target, value);
         }
