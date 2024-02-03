@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import sun.misc.Unsafe;
 import sun.reflect.ConstructorAccessor;
 import sun.reflect.FieldAccessor;
 import sun.reflect.ReflectionFactory;
@@ -20,6 +21,18 @@ import sun.reflect.ReflectionFactory;
  */
 @SuppressWarnings({"UnusedDeclaration", "rawtypes"})
 public class ReflectionUtils {
+
+    private static Unsafe UNSAFE;
+
+    static {
+        try {
+            Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
+            unsafeField.setAccessible(true);
+            UNSAFE = (Unsafe) unsafeField.get(null);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
     public static <T> T as(Class<T> t, Object o) {
         return t.isInstance(o) ? t.cast(o) : null;
     }
@@ -124,9 +137,7 @@ public class ReflectionUtils {
         return enumClass.getDeclaredConstructor(parameterTypes);
     }
 
-    public static void setFailsafeFieldValue(Field field, Object target, Object value)
-            throws NoSuchFieldException, IllegalAccessException {
-
+    public static void setAccessibleNonFinal(Field field) {
         // let's make the field accessible
         field.setAccessible(true);
 
@@ -146,17 +157,11 @@ public class ReflectionUtils {
                 e.printStackTrace();
             }
         }
+    }
 
-        try {
-            System.out.println("Target " + target + " | " + field.getName());
-            if (target == null) field.set(null, value);
-            else field.set(target, value);
-
-//            FieldAccessor fa = ReflectionFactory.getReflectionFactory().newFieldAccessor(field, false);
-//            fa.set(target, value);
-        } catch (NoSuchMethodError error) {
-            field.set(target, value);
-        }
+    public static void setFailsafeFieldValue(Field field, Object target, Object value) throws IllegalAccessException {
+        setAccessibleNonFinal(field);
+        field.set(target, value);
     }
 
     private static void blankField(Class<?> enumClass, String fieldName)
