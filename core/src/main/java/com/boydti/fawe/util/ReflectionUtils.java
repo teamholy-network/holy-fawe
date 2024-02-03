@@ -11,9 +11,6 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import sun.misc.Unsafe;
-import sun.reflect.ConstructorAccessor;
-import sun.reflect.FieldAccessor;
-import sun.reflect.ReflectionFactory;
 
 /**
  * @author DPOH-VAR
@@ -160,8 +157,13 @@ public class ReflectionUtils {
     }
 
     public static void setFailsafeFieldValue(Field field, Object target, Object value) throws IllegalAccessException {
-        setAccessibleNonFinal(field);
+        setAccessible(field);
         field.set(target, value);
+    }
+
+    public static Field setAccessible(Field field) {
+        field.setAccessible(true);
+        return field;
     }
 
     private static void blankField(Class<?> enumClass, String fieldName)
