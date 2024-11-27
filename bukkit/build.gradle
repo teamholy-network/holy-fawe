@@ -1,5 +1,17 @@
+apply {
+    plugin 'java'
+    plugin 'maven-publish'
+}
+
+def HolyRepoUser = project.findProperty("HolyRepoUser")
+def HolyRepoPass = project.findProperty("HolyRepoPass")
+
+if (HolyRepoUser == null || HolyRepoPass == null) {
+    throw new GradleException("HolyUser and HolyPass must be set to publish artifacts. Set in global gradle.properties")
+}
+
 repositories {
-    flatDir {dirs 'lib'}
+    flatDir { dirs 'lib' }
 }
 dependencies {
     implementation project(':core')
@@ -35,10 +47,8 @@ clean { delete "../target" }
 processResources {
     from('src/main/resources') {
         include 'plugin.yml'
-        expand(
-                name: project.parent.name,
-                version: project.parent.version
-        )
+        expand(name: project.parent.name,
+                version: project.parent.version)
     }
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
@@ -52,13 +62,37 @@ shadowJar {
         include(dependency(':core'))
         include(dependency('io.papermc:paperlib:1.0.6'))
     }
-    archiveFileName = "${parent.name}-${project.name}-${parent.version}.jar"
+    archiveClassifier.set('')
+    archiveFileName = "holy-fawe.jar"
     destinationDirectory = file '../target'
     relocate('com.google.gson', 'com.sk89q.worldedit.internal.gson')
+    //relocate 'com.sk89q', 'holyfawe.sk89q'
 }
-shadowJar.doLast {
-    task ->
-        ant.checksum file: task.archivePath
+shadowJar.doLast { task -> ant.checksum file: task.archivePath
 }
 
 build.dependsOn(shadowJar);
+
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            artifact shadowJar
+            groupId = "de.teamholy"
+            artifactId = "holy-fawe"
+            version = "1.0.2"
+        }
+    }
+    repositories {
+        maven {
+            url = uri("https://repo.gin1.cc/repository/releases/")
+            credentials {
+                username = HolyRepoUser
+                password = HolyRepoPass
+            }
+        }
+    }
+}
+
+tasks.named("publish") {
+    dependsOn("shadowJar")
+}

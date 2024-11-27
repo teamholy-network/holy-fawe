@@ -5,6 +5,7 @@
 /target/PlotSquared-Null.jar
 /target/PlotSquared-Uber.jar
 /target/maven-archiver
+/target
 *.project
 *.classpath
 /.gradle
